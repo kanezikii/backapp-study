@@ -1,15 +1,19 @@
-FROM node:alpine3.22
+FROM node:18-slim
 
-WORKDIR /tmp
+WORKDIR /app
 
-COPY index.js index.html package.json ./
+# 安装基础运行依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openssl curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-EXPOSE 3000/tcp
+COPY package*.json ./
+RUN npm install --production
 
-RUN apk update && apk upgrade &&\
-    apk add --no-cache openssl curl gcompat iproute2 coreutils &&\
-    apk add --no-cache bash &&\
-    chmod +x index.js &&\
-    npm install
+COPY . .
+RUN chmod +x index.js
+
+ENV PORT=8080
+EXPOSE 8080
 
 CMD ["node", "index.js"]
